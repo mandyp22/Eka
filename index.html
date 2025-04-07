@@ -99,7 +99,7 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" loop></audio>
+  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" preload="auto" loop></audio>
 
   <div id="intro" class="screen active">
     <h1>Help Eka find her way to the love of her life</h1>
@@ -145,7 +145,13 @@
     function startGame() {
       introScreen.classList.remove('active');
       gameScreen.classList.add('active');
-      bgMusic.play();
+
+      // Ensure audio is loaded and attempt to play
+      bgMusic.load();
+      bgMusic.play().catch((error) => {
+        console.log('Audio play was prevented:', error);
+      });
+
       drawMaze();
     }
 
