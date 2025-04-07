@@ -11,6 +11,16 @@
       background: linear-gradient(135deg, #fff0f5, #ffe4e1);
       overflow: hidden;
       text-align: center;
+      position: relative;
+    }
+    canvas#background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
     }
     .screen {
       display: none;
@@ -111,7 +121,9 @@
   </style>
 </head>
 <body>
-  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" preload="auto" loop></audio>
+  <canvas id="background"></canvas>
+
+  <audio id="bg-music" src="https://assets.mixkit.co/music/preview/mixkit-romantic-piano-239.mp3" preload="auto" loop></audio>
 
   <button id="music-toggle">🎵 Play Music</button>
 
@@ -135,6 +147,60 @@
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script>
+    // Background falling petals effect
+    const canvas = document.getElementById('background');
+    const ctx = canvas.getContext('2d');
+    let petals = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createPetal() {
+      return {
+        x: Math.random() * canvas.width,
+        y: -20,
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 1 + 0.5,
+        drift: Math.random() * 2 - 1
+      };
+    }
+
+    function drawPetals() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
+      ctx.beginPath();
+      petals.forEach(petal => {
+        ctx.moveTo(petal.x, petal.y);
+        ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
+      });
+      ctx.fill();
+    }
+
+    function updatePetals() {
+      petals.forEach(petal => {
+        petal.y += petal.speed;
+        petal.x += petal.drift;
+      });
+      petals = petals.filter(petal => petal.y < canvas.height + 20);
+      while (petals.length < 100) {
+        petals.push(createPetal());
+      }
+    }
+
+    function animatePetals() {
+      drawPetals();
+      updatePetals();
+      requestAnimationFrame(animatePetals);
+    }
+
+    animatePetals();
+
+    // Existing game code
     const introScreen = document.getElementById('intro');
     const gameScreen = document.getElementById('game');
     const endScreen = document.getElementById('end');
