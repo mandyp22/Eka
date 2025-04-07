@@ -59,20 +59,9 @@
       font-size: 18px;
       position: relative;
     }
-    .cell.heart::after {
-      content: "❤️";
-      position: absolute;
-      animation: pulse 1s infinite;
-      font-size: 16px;
-    }
     .player {
       background-color: #f4e04d;
       animation: bounce 0.4s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.7; }
-      50% { transform: scale(1.3); opacity: 1; }
-      100% { transform: scale(1); opacity: 0.7; }
     }
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
@@ -98,19 +87,6 @@
         height: 30px;
       }
     }
-    #music-toggle {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background-color: #ff69b4;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 10px 20px;
-      cursor: pointer;
-      z-index: 10;
-    }
-    /* Dancing animation */
     .dancing {
       animation: dance 0.6s infinite;
       font-size: 40px;
@@ -124,10 +100,6 @@
 </head>
 <body>
   <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" loop></audio>
-  <audio id="move-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_710f4e65b1.mp3?filename=footstep-6-113447.mp3"></audio>
-  <audio id="proximity-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c64d6a5903.mp3?filename=magic-sound-113446.mp3"></audio>
-
-  <button id="music-toggle">🔊</button>
 
   <div id="intro" class="screen active">
     <h1>Help Eka find her way to the love of her life</h1>
@@ -154,9 +126,6 @@
     const endScreen = document.getElementById('end');
     const mazeContainer = document.getElementById('maze');
     const bgMusic = document.getElementById('bg-music');
-    const moveSound = document.getElementById('move-sound');
-    const proximitySound = document.getElementById('proximity-sound');
-    const musicToggle = document.getElementById('music-toggle');
 
     const mazeLayout = [
       ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
@@ -173,28 +142,15 @@
 
     let playerPosition = { x: 0, y: 0 };
 
-    musicToggle.addEventListener('click', () => {
-      if (bgMusic.paused) {
-        bgMusic.play();
-        musicToggle.textContent = '🔊';
-      } else {
-        bgMusic.pause();
-        musicToggle.textContent = '🔇';
-      }
-    });
-
     function startGame() {
       introScreen.classList.remove('active');
       gameScreen.classList.add('active');
       bgMusic.play();
-      moveSound.play().then(() => moveSound.pause());
-      proximitySound.play().then(() => proximitySound.pause());
       drawMaze();
     }
 
     function drawMaze() {
       mazeContainer.innerHTML = '';
-      const endPosition = findPosition('E');
       mazeLayout.forEach((row, y) => {
         row.forEach((cell, x) => {
           const div = document.createElement('div');
@@ -202,9 +158,6 @@
           if (cell === '#') div.classList.add('wall');
           if (cell === 'S') div.classList.add('start');
           if (cell === 'E') div.classList.add('end');
-
-          const distance = Math.abs(endPosition.x - x) + Math.abs(endPosition.y - y);
-          if (distance <= 2 && cell !== 'E') div.classList.add('heart');
 
           if (playerPosition.x === x && playerPosition.y === y) {
             div.classList.add('player');
@@ -234,13 +187,7 @@
       if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
       if (mazeLayout[newY][newX] === '#') return;
 
-      const prevDistance = distanceToGoal(playerPosition.x, playerPosition.y);
       playerPosition = { x: newX, y: newY };
-      const newDistance = distanceToGoal(newX, newY);
-
-      moveSound.play();
-      if (newDistance < prevDistance) proximitySound.play();
-
       drawMaze();
 
       const playerCell = mazeContainer.children[newY * 10 + newX].getBoundingClientRect();
@@ -261,21 +208,6 @@
       }, 1500);
     }
 
-    function distanceToGoal(x, y) {
-      const end = findPosition('E');
-      return Math.abs(end.x - x) + Math.abs(end.y - y);
-    }
-
-    function findPosition(symbol) {
-      for (let y = 0; y < mazeLayout.length; y++) {
-        for (let x = 0; x < mazeLayout[y].length; x++) {
-          if (mazeLayout[y][x] === symbol) {
-            return { x, y };
-          }
-        }
-      }
-    }
-
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') movePlayer(0, -1);
       if (e.key === 'ArrowDown') movePlayer(0, 1);
@@ -287,29 +219,25 @@
     let touchStartY = 0;
 
     window.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
+      touchStartX = e.changedTouches[0].clientX;
+      touchStartY = e.changedTouches[0].clientY;
     });
 
     window.addEventListener('touchend', (e) => {
-      const dx = e.changedTouches[0].screenX - touchStartX;
-      const dy = e.changedTouches[0].screenY - touchStartY;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const threshold = 20;
 
-      if (Math.abs(dx) > Math.abs(dy)) {
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
         if (dx > 0) movePlayer(1, 0);
         else movePlayer(-1, 0);
-      } else {
+      } else if (Math.abs(dy) > threshold) {
         if (dy > 0) movePlayer(0, 1);
         else movePlayer(0, -1);
       }
     });
 
     window.startGame = startGame;
-
-    // Auto-scroll on mobile to center the maze
-    window.addEventListener('load', () => {
-      setTimeout(() => window.scrollTo(0, 1), 0);
-    });
   </script>
 </body>
 </html>
