@@ -29,7 +29,6 @@
       align-items: center;
       flex-direction: column;
       padding: 20px;
-      position: relative;
     }
     .active {
       display: flex;
@@ -67,7 +66,6 @@
       grid-template-columns: repeat(10, 1fr);
       grid-gap: 2px;
       margin-top: 20px;
-      position: relative;
     }
     .cell {
       width: 35px;
@@ -79,29 +77,14 @@
       justify-content: center;
       user-select: none;
       font-size: 18px;
-      position: relative;
-      transition: background-color 0.2s ease;
     }
     .player {
       background-color: #f4e04d;
-      animation: slide 0.2s ease;
-      transition: transform 0.2s ease;
+      animation: bounce 0.4s infinite;
     }
-    @keyframes slide {
-      0% { transform: scale(1.1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1.1); }
-    }
-    .floating-heart {
-      position: absolute;
-      color: red;
-      animation: floatHeart 1s ease-out forwards;
-      pointer-events: none;
-      font-size: 16px;
-    }
-    @keyframes floatHeart {
-      0% { opacity: 1; transform: translateY(0) scale(1); }
-      100% { opacity: 0; transform: translateY(-40px) scale(1.5); }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
     }
     .wall { background-color: #d87093; }
     .start { background-color: #ffe4e1; }
@@ -127,7 +110,8 @@
   <canvas id="background"></canvas>
 
   <audio id="bg-music" src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/Its_time_for_adventure/Komiku_-_08_-_Friends.mp3" preload="auto" loop></audio>
-  <audio id="move-sound" src="https://cdn.pixabay.com/download/audio/2023/03/30/audio_b807401e33.mp3?filename=click-button-140881.mp3" preload="auto"></audio>
+  <audio id="move-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
+  <audio id="celebration-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3" preload="auto"></audio>
 
   <button id="music-toggle">🎵 Play Music</button>
 
@@ -149,9 +133,64 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script>
+    // Falling petals animation 🎋
+    const canvas = document.getElementById('background');
+    const ctx = canvas.getContext('2d');
+    let petals = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createPetal() {
+      return {
+        x: Math.random() * canvas.width,
+        y: -20,
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 1 + 0.5,
+        drift: Math.random() * 2 - 1
+      };
+    }
+
+    function drawPetals() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
+      ctx.beginPath();
+      petals.forEach(petal => {
+        ctx.moveTo(petal.x, petal.y);
+        ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
+      });
+      ctx.fill();
+    }
+
+    function updatePetals() {
+      petals.forEach(petal => {
+        petal.y += petal.speed;
+        petal.x += petal.drift;
+      });
+      petals = petals.filter(petal => petal.y < canvas.height + 20);
+      while (petals.length < 100) {
+        petals.push(createPetal());
+      }
+    }
+
+    function animatePetals() {
+      drawPetals();
+      updatePetals();
+      requestAnimationFrame(animatePetals);
+    }
+
+    animatePetals();
+
     const bgMusic = document.getElementById('bg-music');
     const moveSound = document.getElementById('move-sound');
+    const celebrationSound = document.getElementById('celebration-sound');
     const musicToggle = document.getElementById('music-toggle');
 
     musicToggle.addEventListener('click', () => {
@@ -212,6 +251,18 @@
       });
     }
 
+    function celebrateWin() {
+      celebrationSound.play();
+      const duration = 3 * 1000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({ particleCount: 5, spread: 60 });
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    }
+
     function movePlayer(dx, dy) {
       const newX = playerPosition.x + dx;
       const newY = playerPosition.y + dy;
@@ -228,11 +279,18 @@
         setTimeout(() => {
           gameScreen.classList.remove('active');
           endScreen.classList.add('active');
+          celebrateWin();
         }, 200);
       }
     }
 
-    // Improved continuous swipe controls
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') movePlayer(0, -1);
+      if (e.key === 'ArrowDown') movePlayer(0, 1);
+      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+      if (e.key === 'ArrowRight') movePlayer(1, 0);
+    });
+
     let touchStartX = 0;
     let touchStartY = 0;
     let swipeInterval;
