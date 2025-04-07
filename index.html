@@ -40,6 +40,18 @@
     button:hover {
       background-color: #ff1493;
     }
+    #music-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 20px;
+      cursor: pointer;
+      z-index: 10;
+    }
     #maze {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
@@ -101,18 +113,20 @@
 <body>
   <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" preload="auto" loop></audio>
 
+  <button id="music-toggle">🎵 Play Music</button>
+
   <div id="intro" class="screen active">
-    <h1>Help them find their way to each other</h1>
+    <h1>Help Eka find her way to the love of her life</h1>
     <button onclick="startGame()">Start Now</button>
   </div>
 
   <div id="game" class="screen">
-    <h1>Eka has waited too long, help her reach the love of her life</h1>
+    <h1>Find the Groom!</h1>
     <div id="maze"></div>
   </div>
 
   <div id="end" class="screen">
-    <h1>Yayy! Thanks!! And now they'll live happily ever after ❤️</h1>
+    <h1>And now they'll live happily ever after ❤️</h1>
     <div style="font-size: 40px;">
       <span class="dancing">👰</span>
       <span class="dancing">🤵</span>
@@ -126,6 +140,17 @@
     const endScreen = document.getElementById('end');
     const mazeContainer = document.getElementById('maze');
     const bgMusic = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+
+    musicToggle.addEventListener('click', () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+        musicToggle.textContent = '🔇 Pause Music';
+      } else {
+        bgMusic.pause();
+        musicToggle.textContent = '🎵 Play Music';
+      }
+    });
 
     const mazeLayout = [
       ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
@@ -145,13 +170,6 @@
     function startGame() {
       introScreen.classList.remove('active');
       gameScreen.classList.add('active');
-
-      // Ensure audio is loaded and attempt to play
-      bgMusic.load();
-      bgMusic.play().catch((error) => {
-        console.log('Audio play was prevented:', error);
-      });
-
       drawMaze();
     }
 
