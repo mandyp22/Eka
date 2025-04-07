@@ -80,14 +80,17 @@
       user-select: none;
       font-size: 18px;
       position: relative;
+      transition: background-color 0.2s ease;
     }
     .player {
       background-color: #f4e04d;
-      animation: bounce 0.4s infinite;
+      animation: slide 0.2s ease;
+      transition: transform 0.2s ease;
     }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+    @keyframes slide {
+      0% { transform: scale(1.1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1.1); }
     }
     .floating-heart {
       position: absolute;
@@ -123,7 +126,8 @@
 <body>
   <canvas id="background"></canvas>
 
-  <audio id="bg-music" src="https://assets.mixkit.co/music/preview/mixkit-romantic-piano-239.mp3" preload="auto" loop></audio>
+  <audio id="bg-music" src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Komiku/Its_time_for_adventure/Komiku_-_08_-_Friends.mp3" preload="auto" loop></audio>
+  <audio id="move-sound" src="https://cdn.pixabay.com/download/audio/2023/03/30/audio_b807401e33.mp3?filename=click-button-140881.mp3" preload="auto"></audio>
 
   <button id="music-toggle">🎵 Play Music</button>
 
@@ -145,67 +149,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script>
-    // Background falling petals effect
-    const canvas = document.getElementById('background');
-    const ctx = canvas.getContext('2d');
-    let petals = [];
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    function createPetal() {
-      return {
-        x: Math.random() * canvas.width,
-        y: -20,
-        size: Math.random() * 20 + 10,
-        speed: Math.random() * 1 + 0.5,
-        drift: Math.random() * 2 - 1
-      };
-    }
-
-    function drawPetals() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
-      ctx.beginPath();
-      petals.forEach(petal => {
-        ctx.moveTo(petal.x, petal.y);
-        ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
-      });
-      ctx.fill();
-    }
-
-    function updatePetals() {
-      petals.forEach(petal => {
-        petal.y += petal.speed;
-        petal.x += petal.drift;
-      });
-      petals = petals.filter(petal => petal.y < canvas.height + 20);
-      while (petals.length < 100) {
-        petals.push(createPetal());
-      }
-    }
-
-    function animatePetals() {
-      drawPetals();
-      updatePetals();
-      requestAnimationFrame(animatePetals);
-    }
-
-    animatePetals();
-
-    // Existing game code
-    const introScreen = document.getElementById('intro');
-    const gameScreen = document.getElementById('game');
-    const endScreen = document.getElementById('end');
-    const mazeContainer = document.getElementById('maze');
     const bgMusic = document.getElementById('bg-music');
+    const moveSound = document.getElementById('move-sound');
     const musicToggle = document.getElementById('music-toggle');
 
     musicToggle.addEventListener('click', () => {
@@ -217,6 +163,11 @@
         musicToggle.textContent = '🎵 Play Music';
       }
     });
+
+    const introScreen = document.getElementById('intro');
+    const gameScreen = document.getElementById('game');
+    const endScreen = document.getElementById('end');
+    const mazeContainer = document.getElementById('maze');
 
     const mazeLayout = [
       ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
@@ -261,16 +212,6 @@
       });
     }
 
-    function createFloatingHeart(x, y) {
-      const heart = document.createElement('div');
-      heart.className = 'floating-heart';
-      heart.textContent = '❤️';
-      heart.style.left = `${x}px`;
-      heart.style.top = `${y}px`;
-      mazeContainer.appendChild(heart);
-      setTimeout(() => heart.remove(), 1000);
-    }
-
     function movePlayer(dx, dy) {
       const newX = playerPosition.x + dx;
       const newY = playerPosition.y + dy;
@@ -280,54 +221,45 @@
       playerPosition = { x: newX, y: newY };
       drawMaze();
 
-      const playerCell = mazeContainer.children[newY * 10 + newX].getBoundingClientRect();
-      createFloatingHeart(playerCell.left + playerCell.width / 2, playerCell.top + playerCell.height / 2);
+      moveSound.currentTime = 0;
+      moveSound.play();
 
       if (mazeLayout[newY][newX] === 'E') {
         setTimeout(() => {
           gameScreen.classList.remove('active');
           endScreen.classList.add('active');
-          startConfettiLoop();
         }, 200);
       }
     }
 
-    function startConfettiLoop() {
-      setInterval(() => {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      }, 1500);
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') movePlayer(0, -1);
-      if (e.key === 'ArrowDown') movePlayer(0, 1);
-      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
-      if (e.key === 'ArrowRight') movePlayer(1, 0);
-    });
-
+    // Improved continuous swipe controls
     let touchStartX = 0;
     let touchStartY = 0;
+    let swipeInterval;
 
     window.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].clientX;
       touchStartY = e.changedTouches[0].clientY;
     });
 
-    window.addEventListener('touchend', (e) => {
+    window.addEventListener('touchmove', (e) => {
+      if (swipeInterval) return;
+
       const dx = e.changedTouches[0].clientX - touchStartX;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      const threshold = 20;
+      const threshold = 10;
 
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
-        if (dx > 0) movePlayer(1, 0);
-        else movePlayer(-1, 0);
+        swipeInterval = setInterval(() => movePlayer(dx > 0 ? 1 : -1, 0), 100);
       } else if (Math.abs(dy) > threshold) {
-        if (dy > 0) movePlayer(0, 1);
-        else movePlayer(0, -1);
+        swipeInterval = setInterval(() => movePlayer(0, dy > 0 ? 1 : -1), 100);
       }
     });
 
-    window.startGame = startGame;
+    window.addEventListener('touchend', () => {
+      clearInterval(swipeInterval);
+      swipeInterval = null;
+    });
   </script>
 </body>
 </html>
