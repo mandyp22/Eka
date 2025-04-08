@@ -5,7 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eka's Wedding Maze</title>
   <style>
-    /* (styles remain unchanged) */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #fff0f5, #ffe4e1);
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+      transition: all 0.5s ease;
+    }
+    .screen {
+      display: none;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .active {
+      display: flex;
+      opacity: 1;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #ff1493;
+    }
+    #maze {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      grid-gap: 2px;
+      margin-top: 20px;
+      position: relative;
+    }
+    .cell {
+      width: 35px;
+      height: 35px;
+      background-color: white;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .trail {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: fadeOut 0.5s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: scale(2); }
+    }
+    .player img, .end img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .end img {
+      animation: bounce 1s infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .dancing {
+      animation: dance 0.6s infinite;
+      width: 100px;
+    }
+    @keyframes dance {
+      0%, 100% { transform: translateY(0); }
+      25% { transform: rotate(5deg) translateY(-5px); }
+      75% { transform: rotate(-5deg) translateY(-5px); }
+    }
   </style>
 </head>
 <body>
@@ -35,14 +121,87 @@
       <img src="/mnt/data/manek_car.png" class="dancing" />
       <img src="/mnt/data/sart_groom.png" class="dancing" />
     </div>
-    <button onclick="restartGame()">Play Again</button>
+    <button onclick="restartGameSmoothly()">Play Again</button>
   </div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-function restartGame() {
-  location.reload();
+function restartGameSmoothly() {
+  endScreen.classList.remove('active');
+  introScreen.classList.add('active');
+  playerPosition = { x: 0, y: 0 };
+  player.playVideo();
+  endPlayer.stopVideo();
+}
+
+function fadeToScreen(fromScreen, toScreen) {
+  fromScreen.classList.remove('active');
+  setTimeout(() => {
+    toScreen.classList.add('active');
+  }, 300);
+}
+
+const mazeContainer = document.getElementById('maze');
+const introScreen = document.getElementById('intro');
+const gameScreen = document.getElementById('game');
+const endScreen = document.getElementById('end');
+const moveSound = document.getElementById('move-sound');
+const celebrationSound = document.getElementById('celebration-sound');
+
+let playerPosition = { x: 0, y: 0 };
+const mazeLayout = [
+  ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
+  ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
+  ['#', '#', '#', '#', ' ', '#', ' ', '#', ' ', '#'],
+  ['#', ' ', ' ', '#', ' ', '#', ' ', '#', ' ', '#'],
+  ['#', ' ', '#', '#', ' ', ' ', ' ', '#', ' ', '#'],
+  ['#', ' ', '#', ' ', ' ', '#', '#', '#', ' ', '#'],
+  ['#', ' ', '#', ' ', '#', '#', ' ', ' ', ' ', '#'],
+  ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#', '#', '#'],
+  ['#', '#', '#', '#', '#', '#', ' ', ' ', ' ', 'E'],
+  ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
+];
+
+function startGame() {
+  fadeToScreen(introScreen, gameScreen);
+  drawMaze();
+}
+
+function drawMaze() {
+  mazeContainer.innerHTML = '';
+  mazeLayout.forEach((row, y) => {
+    row.forEach((cell, x) => {
+      const div = document.createElement('div');
+      div.classList.add('cell');
+      if (cell === '#') div.style.backgroundColor = '#d87093';
+      if (cell === 'S') div.style.backgroundColor = '#ffe4e1';
+      if (cell === 'E') div.style.backgroundColor = '#fffacd';
+      if (playerPosition.x === x && playerPosition.y === y) {
+        div.classList.add('player');
+        const img = document.createElement('img');
+        img.src = '/mnt/data/manek_car.png';
+        div.appendChild(img);
+      } else if (cell === 'E') {
+        const img = document.createElement('img');
+        img.src = '/mnt/data/sart_groom.png';
+        div.appendChild(img);
+      }
+      mazeContainer.appendChild(div);
+    });
+  });
+}
+
+function celebrateWin() {
+  celebrationSound.play();
+  const duration = 3 * 1000;
+  const end = Date.now() + duration;
+  (function frame() {
+    confetti({ particleCount: 5, spread: 60 });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  })();
+  if (player && player.pauseVideo) player.pauseVideo();
+  if (endPlayer && endPlayer.playVideo) endPlayer.playVideo();
 }
 
 function createTrail(x, y) {
@@ -53,49 +212,6 @@ function createTrail(x, y) {
   mazeContainer.appendChild(trail);
   setTimeout(() => trail.remove(), 500);
 }
-
-// YouTube API setup
-let player, endPlayer;
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('youtube-player', {
-    height: '0',
-    width: '0',
-    videoId: 'NBl0emxm9ck', // 🔥 Replace with your game music video ID
-    playerVars: {
-      'playsinline': 1,
-      'autoplay': 0,
-      'loop': 1,
-      'controls': 0,
-      'start': 75,
-      'end': 95
-    }
-  });
-
-  endPlayer = new YT.Player('youtube-end-player', {
-    height: '0',
-    width: '0',
-    videoId: 'M11SvDtPBhA', // 🔥 Replace with your celebration music video ID
-    playerVars: {
-      'playsinline': 1,
-      'autoplay': 0,
-      'loop': 1,
-      'controls': 0,
-      'start': 60,
-      'end': 70
-    }
-  });
-}
-
-const musicToggle = document.getElementById('music-toggle');
-musicToggle.addEventListener('click', () => {
-  if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-    player.pauseVideo();
-    musicToggle.textContent = '🎵 Play Music';
-  } else {
-    player.playVideo();
-    musicToggle.textContent = '🔇 Pause Music';
-  }
-});
 
 function movePlayer(dx, dy) {
   const newX = playerPosition.x + dx;
@@ -116,12 +232,84 @@ function movePlayer(dx, dy) {
 
   if (mazeLayout[newY][newX] === 'E') {
     setTimeout(() => {
-      gameScreen.classList.remove('active');
-      endScreen.classList.add('active');
+      fadeToScreen(gameScreen, endScreen);
       celebrateWin();
     }, 200);
   }
 }
+
+// YouTube API setup
+let player, endPlayer;
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('youtube-player', {
+    height: '0',
+    width: '0',
+    videoId: 'YOUR-GAME-MUSIC-VIDEO-ID',
+    playerVars: {
+      'playsinline': 1,
+      'autoplay': 1,
+      'loop': 1,
+      'controls': 0,
+      'start': 30,
+      'end': 60
+    }
+  });
+
+  endPlayer = new YT.Player('youtube-end-player', {
+    height: '0',
+    width: '0',
+    videoId: 'YOUR-CELEBRATION-MUSIC-VIDEO-ID',
+    playerVars: {
+      'playsinline': 1,
+      'autoplay': 0,
+      'loop': 1,
+      'controls': 0,
+      'start': 20,
+      'end': 50
+    }
+  });
+}
+
+const musicToggle = document.getElementById('music-toggle');
+musicToggle.addEventListener('click', () => {
+  if (player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+    player.pauseVideo();
+    musicToggle.textContent = '🎵 Play Music';
+  } else {
+    player.playVideo();
+    musicToggle.textContent = '🔇 Pause Music';
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowUp') movePlayer(0, -1);
+  if (e.key === 'ArrowDown') movePlayer(0, 1);
+  if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+  if (e.key === 'ArrowRight') movePlayer(1, 0);
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+let swipeInterval;
+window.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].clientX;
+  touchStartY = e.changedTouches[0].clientY;
+});
+window.addEventListener('touchmove', (e) => {
+  if (swipeInterval) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const threshold = 10;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+    swipeInterval = setInterval(() => movePlayer(dx > 0 ? 1 : -1, 0), 100);
+  } else if (Math.abs(dy) > threshold) {
+    swipeInterval = setInterval(() => movePlayer(0, dy > 0 ? 1 : -1), 100);
+  }
+});
+window.addEventListener('touchend', () => {
+  clearInterval(swipeInterval);
+  swipeInterval = null;
+});
 </script>
 </body>
 </html>
