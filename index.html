@@ -22,6 +22,18 @@
       z-index: -1;
       pointer-events: none;
     }
+    .trail {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: fadeOut 0.5s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: scale(2); }
+    }
     .screen {
       display: none;
       height: 100vh;
@@ -66,6 +78,7 @@
       grid-template-columns: repeat(10, 1fr);
       grid-gap: 2px;
       margin-top: 20px;
+      position: relative;
     }
     .cell {
       width: 35px;
@@ -76,15 +89,28 @@
       align-items: center;
       justify-content: center;
       user-select: none;
-      font-size: 18px;
+      position: relative;
+      overflow: hidden;
     }
-    .player {
-      background-color: #f4e04d;
-      animation: bounce 0.4s infinite;
+    .player img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      animation: bobble 0.6s infinite ease-in-out;
+    }
+    .end img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      animation: bounce 1s infinite;
+    }
+    @keyframes bobble {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(3deg); }
     }
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+      50% { transform: translateY(-5px); }
     }
     .wall { background-color: #d87093; }
     .start { background-color: #ffe4e1; }
@@ -97,21 +123,23 @@
     }
     .dancing {
       animation: dance 0.6s infinite;
-      font-size: 40px;
+      width: 100px;
     }
     @keyframes dance {
       0%, 100% { transform: translateY(0); }
-      25% { transform: rotate(10deg) translateY(-5px); }
-      75% { transform: rotate(-10deg) translateY(-5px); }
+      25% { transform: rotate(5deg) translateY(-5px); }
+      75% { transform: rotate(-5deg) translateY(-5px); }
     }
   </style>
 </head>
 <body>
   <canvas id="background"></canvas>
 
-  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_aa4fb8d6f4.mp3?filename=wedding-ceremony-10879.mp3" preload="auto" loop></audio>
   <audio id="move-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3" preload="auto"></audio>
   <audio id="celebration-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3" preload="auto"></audio>
+
+  <div id="youtube-player"></div>
+  <div id="youtube-end-player"></div>
 
   <button id="music-toggle">🎵 Play Music</button>
 
@@ -121,203 +149,60 @@
   </div>
 
   <div id="game" class="screen">
-    <h1>She has been waiting so looong....</h1>
+    <h1>Find the Groom!</h1>
     <div id="maze"></div>
   </div>
 
   <div id="end" class="screen">
-    <h1>Yayy!! Thanks!! Now they'll live happily ever after ❤️</h1>
-    <div style="font-size: 40px;">
-      <span class="dancing">👰</span>
-      <span class="dancing">🤵</span>
+    <h1>And now they'll live happily ever after ❤️</h1>
+    <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
+      <img src="/mnt/data/manek_car.png" class="dancing" />
+      <img src="/mnt/data/sart_groom.png" class="dancing" />
     </div>
+    <button onclick="restartGame()">Play Again</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-  <script>
-    // Falling petals animation 🎋
-    const canvas = document.getElementById('background');
-    const ctx = canvas.getContext('2d');
-    let petals = [];
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+function restartGame() {
+  location.reload();
+}
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
+function createTrail(x, y) {
+  const trail = document.createElement('div');
+  trail.className = 'trail';
+  trail.style.left = `${x}px`;
+  trail.style.top = `${y}px`;
+  mazeContainer.appendChild(trail);
+  setTimeout(() => trail.remove(), 500);
+}
 
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+function movePlayer(dx, dy) {
+  const newX = playerPosition.x + dx;
+  const newY = playerPosition.y + dy;
+  if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
+  if (mazeLayout[newY][newX] === '#') return;
 
-    function createPetal() {
-      return {
-        x: Math.random() * canvas.width,
-        y: -20,
-        size: Math.random() * 20 + 10,
-        speed: Math.random() * 1 + 0.5,
-        drift: Math.random() * 2 - 1
-      };
-    }
+  const cell = mazeContainer.children[playerPosition.y * 10 + playerPosition.x];
+  if (cell) {
+    const rect = cell.getBoundingClientRect();
+    createTrail(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  }
 
-    function drawPetals() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
-      ctx.beginPath();
-      petals.forEach(petal => {
-        ctx.moveTo(petal.x, petal.y);
-        ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
-      });
-      ctx.fill();
-    }
+  playerPosition = { x: newX, y: newY };
+  drawMaze();
+  moveSound.currentTime = 0;
+  moveSound.play();
 
-    function updatePetals() {
-      petals.forEach(petal => {
-        petal.y += petal.speed;
-        petal.x += petal.drift;
-      });
-      petals = petals.filter(petal => petal.y < canvas.height + 20);
-      while (petals.length < 100) {
-        petals.push(createPetal());
-      }
-    }
-
-    function animatePetals() {
-      drawPetals();
-      updatePetals();
-      requestAnimationFrame(animatePetals);
-    }
-
-    animatePetals();
-
-    const bgMusic = document.getElementById('bg-music');
-    const moveSound = document.getElementById('move-sound');
-    const celebrationSound = document.getElementById('celebration-sound');
-    const musicToggle = document.getElementById('music-toggle');
-
-    musicToggle.addEventListener('click', () => {
-      if (bgMusic.paused) {
-        bgMusic.play();
-        musicToggle.textContent = '🔇 Pause Music';
-      } else {
-        bgMusic.pause();
-        musicToggle.textContent = '🎵 Play Music';
-      }
-    });
-
-    const introScreen = document.getElementById('intro');
-    const gameScreen = document.getElementById('game');
-    const endScreen = document.getElementById('end');
-    const mazeContainer = document.getElementById('maze');
-
-    const mazeLayout = [
-      ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
-      ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
-      ['#', '#', '#', '#', ' ', '#', ' ', '#', ' ', '#'],
-      ['#', ' ', ' ', '#', ' ', '#', ' ', '#', ' ', '#'],
-      ['#', ' ', '#', '#', ' ', ' ', ' ', '#', ' ', '#'],
-      ['#', ' ', '#', ' ', ' ', '#', '#', '#', ' ', '#'],
-      ['#', ' ', '#', ' ', '#', '#', ' ', ' ', ' ', '#'],
-      ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#', '#', '#'],
-      ['#', '#', '#', '#', '#', '#', ' ', ' ', ' ', 'E'],
-      ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-    ];
-
-    let playerPosition = { x: 0, y: 0 };
-
-    function startGame() {
-      introScreen.classList.remove('active');
-      gameScreen.classList.add('active');
-      drawMaze();
-    }
-
-    function drawMaze() {
-      mazeContainer.innerHTML = '';
-      mazeLayout.forEach((row, y) => {
-        row.forEach((cell, x) => {
-          const div = document.createElement('div');
-          div.classList.add('cell');
-          if (cell === '#') div.classList.add('wall');
-          if (cell === 'S') div.classList.add('start');
-          if (cell === 'E') div.classList.add('end');
-
-          if (playerPosition.x === x && playerPosition.y === y) {
-            div.classList.add('player');
-            div.textContent = '👰';
-          } else if (cell === 'E') {
-            div.textContent = '🤵';
-          }
-
-          mazeContainer.appendChild(div);
-        });
-      });
-    }
-
-    function celebrateWin() {
-      celebrationSound.play();
-      const duration = 3 * 1000;
-      const end = Date.now() + duration;
-      (function frame() {
-        confetti({ particleCount: 5, spread: 60 });
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
-      })();
-    }
-
-    function movePlayer(dx, dy) {
-      const newX = playerPosition.x + dx;
-      const newY = playerPosition.y + dy;
-      if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
-      if (mazeLayout[newY][newX] === '#') return;
-
-      playerPosition = { x: newX, y: newY };
-      drawMaze();
-
-      moveSound.currentTime = 0;
-      moveSound.play();
-
-      if (mazeLayout[newY][newX] === 'E') {
-        setTimeout(() => {
-          gameScreen.classList.remove('active');
-          endScreen.classList.add('active');
-          celebrateWin();
-        }, 200);
-      }
-    }
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') movePlayer(0, -1);
-      if (e.key === 'ArrowDown') movePlayer(0, 1);
-      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
-      if (e.key === 'ArrowRight') movePlayer(1, 0);
-    });
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let swipeInterval;
-
-    window.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].clientX;
-      touchStartY = e.changedTouches[0].clientY;
-    });
-
-    window.addEventListener('touchmove', (e) => {
-      if (swipeInterval) return;
-
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      const dy = e.changedTouches[0].clientY - touchStartY;
-      const threshold = 10;
-
-      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
-        swipeInterval = setInterval(() => movePlayer(dx > 0 ? 1 : -1, 0), 100);
-      } else if (Math.abs(dy) > threshold) {
-        swipeInterval = setInterval(() => movePlayer(0, dy > 0 ? 1 : -1), 100);
-      }
-    });
-
-    window.addEventListener('touchend', () => {
-      clearInterval(swipeInterval);
-      swipeInterval = null;
-    });
-  </script>
+  if (mazeLayout[newY][newX] === 'E') {
+    setTimeout(() => {
+      gameScreen.classList.remove('active');
+      endScreen.classList.add('active');
+      celebrateWin();
+    }, 200);
+  }
+}
+</script>
 </body>
 </html>
