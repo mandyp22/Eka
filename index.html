@@ -53,24 +53,26 @@
     }
     #maze {
       display: grid;
-      grid-template-columns: repeat(10, 40px); /* Fixed size cells */
+      grid-template-columns: repeat(10, 40px); /* Fixed cell size */
       grid-gap: 2px;
       margin-top: 20px;
       position: relative;
       width: max-content;
       margin-left: auto;
       margin-right: auto;
+      max-width: 100%;
+      overflow-x: auto;
     }
     .cell {
-      width: 100%;
-      aspect-ratio: 1 / 1;
+      width: 40px; /* Fixed width */
+      height: 40px; /* Fixed height */
       background-color: white;
       border: 1px solid #ccc;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-    }
+     }
     .trail {
       position: absolute;
       width: 10px;
@@ -84,10 +86,36 @@
       to { opacity: 0; transform: scale(2); }
     }
     .player img, .end img {
-      width: 30px;
+      width: 80%; /* Make image size proportional */
       height: auto;
+      max-width: 30px;
+      max-height: 30px;
       object-fit: contain;
+      transition: transform 0.3s ease;
     }
+    .player img:hover, .end img:hover {
+      transform: scale(1.1);
+    }
+
+  /* Add optional responsive improvement */
+  @media (max-width: 600px) {
+    #maze {
+      grid-template-columns: repeat(10, 8vw); /* Responsive cell size */
+      max-width: 100%;
+    }
+
+    .cell {
+      width: 8vw;
+      height: 8vw;
+    }
+
+    .player img, .end img {
+      width: 70%;
+      height: auto;
+      max-width: none;
+      max-height: none;
+    }
+  }
     .end img {
       animation: bounce 1s infinite;
     }
