@@ -96,26 +96,6 @@
     .player img:hover, .end img:hover {
       transform: scale(1.1);
     }
-
-  /* Add optional responsive improvement */
-    @media (max-width: 600px) {
-    #maze {
-      grid-template-columns: repeat(10, 8vw); /* Responsive cell size */
-      max-width: 100%;
-    }
-
-    .cell {
-      width: 8vw;
-      height: 8vw;
-    }
-
-    .player img, .end img {
-      width: 70%;
-      height: auto;
-      max-width: none;
-      max-height: none;
-    }
-  }
     .end img {
       animation: bounce 1s infinite;
     }
