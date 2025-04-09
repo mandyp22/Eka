@@ -52,71 +52,84 @@
       background-color: #ff1493;
     }
     #maze {
-      display: grid;
-      grid-template-columns: repeat(10, 40px); /* Fixed cell size */
-      grid-gap: 2px;
-      margin-top: 20px;
-      position: relative;
-      width: max-content;
-      margin-left: auto;
-      margin-right: auto;
+    display: grid;
+    grid-template-columns: repeat(10, 40px); /* Fixed cell size */
+    grid-gap: 2px;
+    margin-top: 20px;
+    position: relative;
+    width: max-content;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .cell {
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height */
+    background-color: white;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Only target images inside the maze */
+  #maze .player img, #maze .end img {
+    width: 80%; /* Make image size proportional */
+    height: auto;
+    max-width: 30px;
+    max-height: 30px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+  }
+
+  /* Hover effect only for maze images */
+  #maze .player img:hover, #maze .end img:hover {
+    transform: scale(1.1);
+  }
+
+  /* Bounce animation only for groom image inside maze */
+  #maze .end img {
+    animation: bounce 1s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* Control end screen images separately */
+  #end img.dancing {
+    width: 120px;
+    height: auto;
+    max-width: 100%;
+  }
+
+  /* Optional responsive improvement */
+  @media (max-width: 600px) {
+    #maze {
+      grid-template-columns: repeat(10, 8vw); /* Responsive cell size */
       max-width: 100%;
-      overflow-x: auto;
     }
+
     .cell {
-      width: 40px; /* Fixed width */
-      height: 40px; /* Fixed height */
-      background-color: white;
-      border: 1px solid #ccc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-     }
-    .trail {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 50%;
-      pointer-events: none;
-      animation: fadeOut 0.5s forwards;
+      width: 8vw;
+      height: 8vw;
     }
-    @keyframes fadeOut {
-      to { opacity: 0; transform: scale(2); }
-    }
+
     #maze .player img, #maze .end img {
-      width: 80%;
+      width: 70%;
       height: auto;
-      max-width: 30px;
-      max-height: 30px;
-      object-fit: contain;
-      transition: transform 0.3s ease;
+      max-width: none;
+      max-height: none;
     }
+
     #end img.dancing {
-      width: 120px;
-      height: auto;
-      max-width: 100%;
+      width: 80px;
     }
-    .player img:hover, .end img:hover {
-      transform: scale(1.1);
-    }
-    .end img {
-      animation: bounce 1s infinite;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-    .dancing {
-      animation: dance 0.6s infinite;
-      width: 100px;
-    }
-    @keyframes dance {
-      0%, 100% { transform: translateY(0); }
-      25% { transform: rotate(5deg) translateY(-5px); }
-      75% { transform: rotate(-5deg) translateY(-5px); }
-    }
+  }
   </style>
 </head>
 <body>
