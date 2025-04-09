@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Eka's Wedding Maze</title>
   <style>
-    /* Keep existing styles, and update maze container and image sizes */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -26,27 +25,28 @@
       opacity: 0;
       transition: opacity 0.5s ease;
     }
-    
+
     .active {
       display: flex;
       opacity: 1;
     }
+
     #maze {
       display: grid;
-      grid-template-columns: repeat(10, 40px); /* Fixed cell size */
+      grid-template-columns: repeat(10, minmax(30px, 8vw));
       grid-gap: 2px;
       margin-top: 20px;
       position: relative;
-      width: max-content;
+      width: fit-content;
       margin-left: auto;
       margin-right: auto;
-      max-width: 100%;
-      overflow-x: auto;
     }
 
     .cell {
-      width: 40px; /* Fixed width */
-      height: 40px; /* Fixed height */
+      width: 8vw;
+      height: 8vw;
+      max-width: 40px;
+      max-height: 40px;
       background-color: white;
       border: 1px solid #ccc;
       display: flex;
@@ -55,9 +55,8 @@
       position: relative;
     }
 
-    /* Only target images inside the maze */
     #maze .player img, #maze .end img {
-      width: 80%; /* Make image size proportional */
+      width: 80%;
       height: auto;
       max-width: 30px;
       max-height: 30px;
@@ -65,12 +64,10 @@
       transition: transform 0.3s ease;
     }
 
-    /* Hover effect only for maze images */
     #maze .player img:hover, #maze .end img:hover {
       transform: scale(1.1);
     }
 
-    /* Bounce animation only for groom image inside maze */
     #maze .end img {
       animation: bounce 1s infinite;
     }
@@ -80,7 +77,6 @@
       50% { transform: translateY(-5px); }
     }
 
-    /* Control end screen images separately */
     #end img.dancing {
       width: 30vw;
       max-width: 150px;
@@ -88,11 +84,9 @@
       object-fit: contain;
     }
 
-    /* Optional responsive improvement */
     @media (max-width: 600px) {
       #maze {
-        grid-template-columns: repeat(10, 8vw); /* Responsive cell size */
-        max-width: 100%;
+        grid-template-columns: repeat(10, 8vw);
       }
 
       .cell {
@@ -199,7 +193,19 @@ musicToggle.addEventListener('click', () => {
   }
 });
 
-let playerPosition = { x: 0, y: 0 };
+let playerPosition = findStartPosition();
+
+function findStartPosition() {
+  for (let y = 0; y < mazeLayout.length; y++) {
+    for (let x = 0; x < mazeLayout[y].length; x++) {
+      if (mazeLayout[y][x] === 'S') {
+        return { x, y };
+      }
+    }
+  }
+  return { x: 0, y: 0 };
+}
+
 const mazeLayout = [
   ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
   ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
@@ -273,7 +279,7 @@ function celebrateWin() {
 function restartGame() {
   endScreen.classList.remove('active');
   introScreen.classList.add('active');
-  playerPosition = { x: 0, y: 0 };
+  playerPosition = findStartPosition();
   endMusic.pause();
   backgroundMusic.currentTime = 50;
   backgroundMusic.play();
