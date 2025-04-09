@@ -6,7 +6,7 @@
   <title>Eka's Wedding Maze</title>
   <style>
     /* Keep existing styles, and update maze container and image sizes */
- body {
+    body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #fff0f5, #ffe4e1);
@@ -15,15 +15,7 @@
       position: relative;
       transition: all 0.5s ease;
     }
-    canvas#background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      pointer-events: none;
-    }
+
     .screen {
       display: none;
       height: 100vh;
@@ -34,23 +26,10 @@
       opacity: 0;
       transition: opacity 0.5s ease;
     }
+
     .active {
       display: flex;
       opacity: 1;
-    }
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #ff69b4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #ff1493;
     }
     #maze {
       display: grid;
