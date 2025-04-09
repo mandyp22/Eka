@@ -111,7 +111,6 @@
   </style>
 </head>
 <body>
-<!-- (rest of your code stays as is) -->
   <canvas id="background"></canvas>
 
   <audio id="move-sound" src="audio/move.mp3" preload="auto"></audio>
@@ -140,200 +139,200 @@
     <button onclick="restartGame()">Play Again</button>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-<script>
-// Petals animation
-const canvas = document.getElementById('background');
-const ctx = canvas.getContext('2d');
-let petals = [];
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-function createPetal() {
-  return { x: Math.random() * canvas.width, y: -20, size: Math.random() * 20 + 10, speed: Math.random() * 1 + 0.5, drift: Math.random() * 2 - 1 };
-}
-function drawPetals() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
-  ctx.beginPath();
-  petals.forEach(petal => {
-    ctx.moveTo(petal.x, petal.y);
-    ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
-  });
-  ctx.fill();
-}
-function updatePetals() {
-  petals.forEach(petal => { petal.y += petal.speed; petal.x += petal.drift; });
-  petals = petals.filter(p => p.y < canvas.height + 20);
-  while (petals.length < 100) petals.push(createPetal());
-}
-function animatePetals() {
-  drawPetals();
-  updatePetals();
-  requestAnimationFrame(animatePetals);
-}
-animatePetals();
-
-// Game Logic
-const mazeContainer = document.getElementById('maze');
-const introScreen = document.getElementById('intro');
-const gameScreen = document.getElementById('game');
-const endScreen = document.getElementById('end');
-const moveSound = document.getElementById('move-sound');
-const celebrationSound = document.getElementById('celebration-sound');
-const backgroundMusic = document.getElementById('background-music');
-const endMusic = document.getElementById('end-music');
-
-const musicToggle = document.getElementById('music-toggle');
-musicToggle.addEventListener('click', () => {
-  if (backgroundMusic.paused) {
-    backgroundMusic.currentTime = 50;
-    backgroundMusic.play();
-  } else {
-    backgroundMusic.pause();
-  }
-});
-
-let playerPosition = findStartPosition();
-
-function findStartPosition() {
-  for (let y = 0; y < mazeLayout.length; y++) {
-    for (let x = 0; x < mazeLayout[y].length; x++) {
-      if (mazeLayout[y][x] === 'S') {
-        return { x, y };
-      }
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    // Petals animation
+    const canvas = document.getElementById('background');
+    const ctx = canvas.getContext('2d');
+    let petals = [];
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-  }
-  return { x: 0, y: 0 };
-}
-
-const mazeLayout = [
-  ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
-  ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
-  ['#', '#', '#', '#', ' ', '#', ' ', '#', ' ', '#'],
-  ['#', ' ', ' ', '#', ' ', '#', ' ', '#', ' ', '#'],
-  ['#', ' ', '#', '#', ' ', ' ', ' ', '#', ' ', '#'],
-  ['#', ' ', '#', ' ', ' ', '#', '#', '#', ' ', '#'],
-  ['#', ' ', '#', ' ', '#', '#', ' ', ' ', ' ', '#'],
-  ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#', '#', '#'],
-  ['#', '#', '#', '#', '#', '#', ' ', ' ', ' ', 'E'],
-  ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-];
-
-function startGame() {
-  introScreen.classList.remove('active');
-  gameScreen.classList.add('active');
-  backgroundMusic.currentTime = 50;
-  backgroundMusic.play();
-  backgroundMusic.addEventListener('timeupdate', function checkBgMusic() {
-    if (backgroundMusic.currentTime >= 70) {
-      backgroundMusic.pause();
-      backgroundMusic.removeEventListener('timeupdate', checkBgMusic);
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    function createPetal() {
+      return { x: Math.random() * canvas.width, y: -20, size: Math.random() * 20 + 10, speed: Math.random() * 1 + 0.5, drift: Math.random() * 2 - 1 };
     }
-  });
-  drawMaze();
-}
+    function drawPetals() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
+      ctx.beginPath();
+      petals.forEach(petal => {
+        ctx.moveTo(petal.x, petal.y);
+        ctx.arc(petal.x, petal.y, petal.size / 2, 0, Math.PI * 2);
+      });
+      ctx.fill();
+    }
+    function updatePetals() {
+      petals.forEach(petal => { petal.y += petal.speed; petal.x += petal.drift; });
+      petals = petals.filter(p => p.y < canvas.height + 20);
+      while (petals.length < 100) petals.push(createPetal());
+    }
+    function animatePetals() {
+      drawPetals();
+      updatePetals();
+      requestAnimationFrame(animatePetals);
+    }
+    animatePetals();
 
-function drawMaze() {
-  mazeContainer.innerHTML = '';
-  mazeLayout.forEach((row, y) => {
-    row.forEach((cell, x) => {
-      const div = document.createElement('div');
-      div.classList.add('cell');
-      if (cell === '#') div.style.backgroundColor = '#d87093';
-      if (cell === 'S') div.style.backgroundColor = '#ffe4e1';
-      if (cell === 'E') div.style.backgroundColor = '#fffacd';
-      if (playerPosition.x === x && playerPosition.y === y) {
-        div.classList.add('player');
-        const img = document.createElement('img');
-        img.src = 'images/manek_car.png';
-        div.appendChild(img);
-      } else if (cell === 'E') {
-        const img = document.createElement('img');
-        img.src = 'images/sart_groom.png';
-        div.appendChild(img);
+    // Game Logic
+    const mazeContainer = document.getElementById('maze');
+    const introScreen = document.getElementById('intro');
+    const gameScreen = document.getElementById('game');
+    const endScreen = document.getElementById('end');
+    const moveSound = document.getElementById('move-sound');
+    const celebrationSound = document.getElementById('celebration-sound');
+    const backgroundMusic = document.getElementById('background-music');
+    const endMusic = document.getElementById('end-music');
+
+    const musicToggle = document.getElementById('music-toggle');
+    musicToggle.addEventListener('click', () => {
+      if (backgroundMusic.paused) {
+        backgroundMusic.currentTime = 50;
+        backgroundMusic.play();
+      } else {
+        backgroundMusic.pause();
       }
-      mazeContainer.appendChild(div);
     });
-  });
-}
 
-function celebrateWin() {
-  backgroundMusic.pause();
-  endMusic.currentTime = 60;
-  endMusic.play();
-  endMusic.addEventListener('timeupdate', function checkEndMusic() {
-    if (endMusic.currentTime >= 69) {
-      endMusic.pause();
-      endMusic.removeEventListener('timeupdate', checkEndMusic);
+    let playerPosition = findStartPosition();
+
+    function findStartPosition() {
+      for (let y = 0; y < mazeLayout.length; y++) {
+        for (let x = 0; x < mazeLayout[y].length; x++) {
+          if (mazeLayout[y][x] === 'S') {
+            return { x, y };
+          }
+        }
+      }
+      return { x: 0, y: 0 };
     }
-  });
-  celebrationSound.play();
-  const duration = 3 * 1000;
-  const end = Date.now() + duration;
-  (function frame() {
-    confetti({ particleCount: 5, spread: 60 });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  })();
-}
 
-function restartGame() {
-  endScreen.classList.remove('active');
-  introScreen.classList.add('active');
-  playerPosition = findStartPosition();
-  endMusic.pause();
-  backgroundMusic.currentTime = 50;
-  backgroundMusic.play();
-  drawMaze();
-}
+    const mazeLayout = [
+      ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
+      ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
+      ['#', '#', '#', '#', ' ', '#', ' ', '#', ' ', '#'],
+      ['#', ' ', ' ', '#', ' ', '#', ' ', '#', ' ', '#'],
+      ['#', ' ', '#', '#', ' ', ' ', ' ', '#', ' ', '#'],
+      ['#', ' ', '#', ' ', ' ', '#', '#', '#', ' ', '#'],
+      ['#', ' ', '#', ' ', '#', '#', ' ', ' ', ' ', '#'],
+      ['#', ' ', ' ', ' ', ' ', ' ', ' ', '#', '#', '#'],
+      ['#', '#', '#', '#', '#', '#', ' ', ' ', ' ', 'E'],
+      ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
+    ];
 
-function movePlayer(dx, dy) {
-  const newX = playerPosition.x + dx;
-  const newY = playerPosition.y + dy;
-  if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
-  if (mazeLayout[newY][newX] === '#') return;
+    function startGame() {
+      introScreen.classList.remove('active');
+      gameScreen.classList.add('active');
+      backgroundMusic.currentTime = 50;
+      backgroundMusic.play();
+      backgroundMusic.addEventListener('timeupdate', function checkBgMusic() {
+        if (backgroundMusic.currentTime >= 70) {
+          backgroundMusic.pause();
+          backgroundMusic.removeEventListener('timeupdate', checkBgMusic);
+        }
+      });
+      drawMaze();
+    }
 
-  playerPosition = { x: newX, y: newY };
-  drawMaze();
-  moveSound.currentTime = 0;
-  moveSound.play();
+    function drawMaze() {
+      mazeContainer.innerHTML = '';
+      mazeLayout.forEach((row, y) => {
+        row.forEach((cell, x) => {
+          const div = document.createElement('div');
+          div.classList.add('cell');
+          if (cell === '#') div.style.backgroundColor = '#d87093';
+          if (cell === 'S') div.style.backgroundColor = '#ffe4e1';
+          if (cell === 'E') div.style.backgroundColor = '#fffacd';
+          if (playerPosition.x === x && playerPosition.y === y) {
+            div.classList.add('player');
+            const img = document.createElement('img');
+            img.src = 'images/manek_car.png';
+            div.appendChild(img);
+          } else if (cell === 'E') {
+            const img = document.createElement('img');
+            img.src = 'images/sart_groom.png';
+            div.appendChild(img);
+          }
+          mazeContainer.appendChild(div);
+        });
+      });
+    }
 
-  if (mazeLayout[newY][newX] === 'E') {
-    setTimeout(() => {
-      gameScreen.classList.remove('active');
-      endScreen.classList.add('active');
-      celebrateWin();
-    }, 200);
-  }
-}
+    function celebrateWin() {
+      backgroundMusic.pause();
+      endMusic.currentTime = 60;
+      endMusic.play();
+      endMusic.addEventListener('timeupdate', function checkEndMusic() {
+        if (endMusic.currentTime >= 69) {
+          endMusic.pause();
+          endMusic.removeEventListener('timeupdate', checkEndMusic);
+        }
+      });
+      celebrationSound.play();
+      const duration = 3 * 1000;
+      const end = Date.now() + duration;
+      (function frame() {
+        confetti({ particleCount: 5, spread: 60 });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
 
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'ArrowUp') movePlayer(0, -1);
-  if (e.key === 'ArrowDown') movePlayer(0, 1);
-  if (e.key === 'ArrowLeft') movePlayer(-1, 0);
-  if (e.key === 'ArrowRight') movePlayer(1, 0);
-});
+    function restartGame() {
+      endScreen.classList.remove('active');
+      introScreen.classList.add('active');
+      playerPosition = findStartPosition();
+      endMusic.pause();
+      backgroundMusic.currentTime = 50;
+      backgroundMusic.play();
+      drawMaze();
+    }
 
-let touchStartX = 0;
-let touchStartY = 0;
-window.addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].clientX;
-  touchStartY = e.changedTouches[0].clientY;
-});
-window.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 0) movePlayer(1, 0);
-    else movePlayer(-1, 0);
-  } else {
-    if (dy > 0) movePlayer(0, 1);
-    else movePlayer(0, -1);
-  }
-});
-</script>
+    function movePlayer(dx, dy) {
+      const newX = playerPosition.x + dx;
+      const newY = playerPosition.y + dy;
+      if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
+      if (mazeLayout[newY][newX] === '#') return;
+
+      playerPosition = { x: newX, y: newY };
+      drawMaze();
+      moveSound.currentTime = 0;
+      moveSound.play();
+
+      if (mazeLayout[newY][newX] === 'E') {
+        setTimeout(() => {
+          gameScreen.classList.remove('active');
+          endScreen.classList.add('active');
+          celebrateWin();
+        }, 200);
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') movePlayer(0, -1);
+      if (e.key === 'ArrowDown') movePlayer(0, 1);
+      if (e.key === 'ArrowLeft') movePlayer(-1, 0);
+      if (e.key === 'ArrowRight') movePlayer(1, 0);
+    });
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+      touchStartY = e.changedTouches[0].clientY;
+    });
+    window.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) movePlayer(1, 0);
+        else movePlayer(-1, 0);
+      } else {
+        if (dy > 0) movePlayer(0, 1);
+        else movePlayer(0, -1);
+      }
+    });
+  </script>
 </body>
 </html>
