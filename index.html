@@ -7,6 +7,7 @@
   <style>
     html, body {
       height: 100%;
+      width: 100%;
     }
     body {
       margin: 0;
@@ -21,12 +22,15 @@
     .screen {
       display: none;
       height: 100vh;
+      width: 100%;
+      position: relative;
       justify-content: center;
       align-items: center;
       flex-direction: column;
       padding: 20px;
       opacity: 0;
       transition: opacity 0.5s ease;
+      z-index: 1;
     }
 
     .active {
@@ -176,7 +180,7 @@
     }
     animatePetals();
 
-    // Game Logic
+    // Game logic
     const mazeContainer = document.getElementById('maze');
     const introScreen = document.getElementById('intro');
     const gameScreen = document.getElementById('game');
@@ -196,19 +200,6 @@
       }
     });
 
-    let playerPosition = findStartPosition();
-
-    function findStartPosition() {
-      for (let y = 0; y < mazeLayout.length; y++) {
-        for (let x = 0; x < mazeLayout[y].length; x++) {
-          if (mazeLayout[y][x] === 'S') {
-            return { x, y };
-          }
-        }
-      }
-      return { x: 0, y: 0 };
-    }
-
     const mazeLayout = [
       ['S', ' ', '#', '#', '#', '#', '#', '#', '#', '#'],
       ['#', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#'],
@@ -221,6 +212,8 @@
       ['#', '#', '#', '#', '#', '#', ' ', ' ', ' ', 'E'],
       ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
     ];
+
+    let playerPosition = { x: 0, y: 0 };
 
     function startGame() {
       introScreen.classList.remove('active');
@@ -282,7 +275,7 @@
     function restartGame() {
       endScreen.classList.remove('active');
       introScreen.classList.add('active');
-      playerPosition = findStartPosition();
+      playerPosition = { x: 0, y: 0 };
       endMusic.pause();
       backgroundMusic.currentTime = 50;
       backgroundMusic.play();
