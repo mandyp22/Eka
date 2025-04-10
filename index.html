@@ -20,7 +20,7 @@
     }
 
     .screen {
-      display: none;
+      display: flex;
       height: 100vh;
       width: 100%;
       position: relative;
@@ -31,6 +31,10 @@
       opacity: 0;
       transition: opacity 0.5s ease;
       z-index: 1;
+    }
+
+    .screen:not(.active) {
+      display: none;
     }
 
     .screen.active {
@@ -149,15 +153,24 @@
     const canvas = document.getElementById('background');
     const ctx = canvas.getContext('2d');
     let petals = [];
+
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
+
     function createPetal() {
-      return { x: Math.random() * canvas.width, y: -20, size: Math.random() * 20 + 10, speed: Math.random() * 1 + 0.5, drift: Math.random() * 2 - 1 };
+      return {
+        x: Math.random() * canvas.width,
+        y: -20,
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 1 + 0.5,
+        drift: Math.random() * 2 - 1
+      };
     }
+
     function drawPetals() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'rgba(255, 182, 193, 0.8)';
@@ -168,11 +181,16 @@
       });
       ctx.fill();
     }
+
     function updatePetals() {
-      petals.forEach(petal => { petal.y += petal.speed; petal.x += petal.drift; });
+      petals.forEach(petal => {
+        petal.y += petal.speed;
+        petal.x += petal.drift;
+      });
       petals = petals.filter(p => p.y < canvas.height + 20);
       while (petals.length < 100) petals.push(createPetal());
     }
+
     function animatePetals() {
       drawPetals();
       updatePetals();
@@ -180,7 +198,7 @@
     }
     animatePetals();
 
-    // Game logic
+    // Game Logic
     const mazeContainer = document.getElementById('maze');
     const introScreen = document.getElementById('intro');
     const gameScreen = document.getElementById('game');
