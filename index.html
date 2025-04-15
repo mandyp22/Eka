@@ -122,6 +122,10 @@
       #end img.dancing {
         width: 80px;
       }
+      .groom-icon {
+        width: 20px;
+        height: auto;
+      }
     }
   </style>
 </head>
@@ -271,6 +275,7 @@
           } else if (cell === 'E') {
             const img = document.createElement('img');
             img.src = 'images/sart_groom.png';
+            img.classList.add('groom-icon');
             div.appendChild(img);
           }
           mazeContainer.appendChild(div);
