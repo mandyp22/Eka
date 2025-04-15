@@ -298,15 +298,20 @@
     function movePlayer(dx, dy) {
       const newX = playerPosition.x + dx;
       const newY = playerPosition.y + dy;
+
       if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) return;
       if (mazeLayout[newY][newX] === '#') return;
+
+  // 🟡 Check if it's the end BEFORE moving
+      const isEndCell = mazeLayout[newY][newX] === 'E';
 
       playerPosition = { x: newX, y: newY };
       drawMaze();
       moveSound.currentTime = 0;
       moveSound.play();
 
-      if (mazeLayout[newY][newX] === 'E') {
+  // 🟢 Now trigger celebration if needed
+      if (isEndCell) {
         setTimeout(() => {
           gameScreen.classList.remove('active');
           endScreen.classList.add('active');
@@ -314,7 +319,6 @@
         }, 200);
       }
     }
-
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowUp') movePlayer(0, -1);
       if (e.key === 'ArrowDown') movePlayer(0, 1);
