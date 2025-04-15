@@ -127,11 +127,11 @@
         height: auto;
       }
       #maze .end img.groom-icon {
-         width: 18px !important;
-         height: 18px !important;
-         max-width: none !important;
-         max-height: none !important;
+         width: 16px !important;
+         height: 16px !important;
          object-fit: contain;
+         transform: none !important;
+         animation: none !important;
       }
 
     }
@@ -281,6 +281,7 @@
             img.src = 'images/manek_car.png';
             div.appendChild(img);
           } else if (cell === 'E') {
+            div.classList.add('end');
             const img = document.createElement('img');
             img.src = 'images/sart_groom.png';
             img.classList.add('groom-icon');
